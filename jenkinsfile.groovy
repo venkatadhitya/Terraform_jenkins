@@ -1,5 +1,5 @@
 pipeline {
-    parameters{
+    parameters {
         booleanParam(name:'autoAppropve', defaultValue: false, description: 'Automatically run apply after generating paln?')
     }
   
@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                script{
+                script {
                     dir("Terraform")
                         {
                             git 'https://github.com/venkatadhitya/Terraform_jenkins.git'
@@ -23,30 +23,30 @@ pipeline {
                 }
             }
         }
-    stage ('plan'){
-        steps{
+    stage('plan') {
+        steps {
             sh 'pwd;cd Terraform/ ; terraform init'
             sh "pwd;cd Terraform/ ; terraform plan -out tfplan"
             sh 'pwd;cd Terraform/ ; terraform show -no-color tfplan >tfplan.txt'
         }
     }
-    stage ('Approval'){
+    stage('Approval') {
         when {
             not {
                 equals expected: true, actual: params.autoAppropve
             }
         }
     
-        steps{
-            script{
+        steps {
+            script {
                 def plan = readfile 'Terraform/tfplan.txt'
                 input message: "do you want to apply the plan?",
                 parameters: [text(name: 'plan', description: 'please review the plan', defaultValue: plan)]
             }
         }
     }
-    stage ('Apply'){
-        steps{
+    stage('Apply') {
+        steps {
             sh "pwd;cd Terraform/ ; terraform apply -input=false tfplan"
         }
     }
