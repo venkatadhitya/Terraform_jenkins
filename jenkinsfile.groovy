@@ -10,42 +10,42 @@ pipeline {
   }
 
   agent any
-  stages {
-    stage('Checkout') {
-      steps {
-        script{
-            dir("Terraform")
-                {
-                    git 'https://github.com/venkatadhitya/Terraform_jenkins.git'
+    stages {
+        stage('Checkout') {
+            steps {
+                script{
+                    dir("Terraform")
+                        {
+                            git 'https://github.com/venkatadhitya/Terraform_jenkins.git'
 
+                        }
+                    }   
                 }
-            }   
-       }
-    }
-  }
-    stage('plan'){
+            }
+        }
+    stage ('plan'){
         steps{
             sh 'pwd;cd Terraform/ ; terraform init'
             sh "pwd;cd Terraform/ ; terraform plan -out tfplan"
             sh 'pwd;cd Terraform/ ; terraform show -no-color tfplan >tfplan.txt'
         }
     }
-    stage('Approval'){
+    stage ('Approval'){
         when {
             not {
                 equals expected: true, actual: params.autoAppropve
             }
         }
     
-    steps{
-        script{
-            def plan = readfile 'Terraform/tfplan.txt'
-            input message: "do you want to apply the plan?",
-            parameters: [text(name: 'plan', description: 'please review the plan', defaultValue: plan)]
+        steps{
+            script{
+                def plan = readfile 'Terraform/tfplan.txt'
+                input message: "do you want to apply the plan?",
+                parameters: [text(name: 'plan', description: 'please review the plan', defaultValue: plan)]
+            }
         }
     }
-    }
-    stage('Apply'){
+    stage ('Apply'){
         steps{
             sh "pwd;cd Terraform/ ; terraform apply -input=false tfplan"
         }
