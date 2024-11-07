@@ -10,44 +10,44 @@ pipeline {
   }
 
   agent any
-  stages {
-    stage('Checkout') {
-      steps {
-        script{
-            dir("DEMOEC2")
-                {
-                    git 'https://github.com/venkatadhitya/demoec2.git'
+    stages {
+        stage('Checkout') {
+            steps {
+                script{
+                    dir("Terraform")
+                        {
+                            git 'https://github.com/venkatadhitya/Terraform_jenkins.git'
 
+                        }
+                    }   
                 }
-            }   
-       }
-    }
-  }
-    stage('plan'){
+            }
+        }
+    stage ('plan'){
         steps{
-            sh 'pwd;cd DEMOEC2/ ; terraform init'
-            sh "pwd;cd DEMOEC2/ ; terraform plan -out tfplan"
-            sh 'pwd;cd DEMOEC2/ ; terraform show -no-color tfplan >tfplan.txt'
+            sh 'pwd;cd Terraform/ ; terraform init'
+            sh "pwd;cd Terraform/ ; terraform plan -out tfplan"
+            sh 'pwd;cd Terraform/ ; terraform show -no-color tfplan >tfplan.txt'
         }
     }
-    stage('Approval'){
+    stage ('Approval'){
         when {
             not {
                 equals expected: true, actual: params.autoAppropve
             }
         }
     
-    steps{
-        script{
-            def plan = readfile 'DEMOEC2/tfplan.txt'
-            input message: "do you want to apply the plan?",
-            parameters: [text(name: 'plan', description: 'please review the plan', defaultValue: plan)]
+        steps{
+            script{
+                def plan = readfile 'Terraform/tfplan.txt'
+                input message: "do you want to apply the plan?",
+                parameters: [text(name: 'plan', description: 'please review the plan', defaultValue: plan)]
+            }
         }
     }
-    }
-    stage('Apply'){
+    stage ('Apply'){
         steps{
-            sh "pwd;cd DEMOEC2/ ; terraform apply -input=false tfplan"
+            sh "pwd;cd Terraform/ ; terraform apply -input=false tfplan"
         }
     }
 }
