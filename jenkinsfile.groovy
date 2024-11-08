@@ -1,53 +1,34 @@
 pipeline {
-    parameters {
-        booleanParam(name:'autoAppropve', defaultValue: false, description: 'Automatically run apply after generating paln?')
-    }
-  
+  agent any
 
   environment {
-    AWS_ACCESS_KEY_ID     = credentials('aws-access-key-id')
-    AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+    AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
   }
 
-  agent any
-    stages {
-        stage('Checkout') {
-            steps {
-                script {
-                    dir("Terraform")
-                        {
-                            git 'https://github.com/venkatadhitya/Terraform_jenkins.git'
+  stages {
+    stage('Checkout') {
+      steps {
+        git 'https://github.com/venkatadhitya/Terraform_jenkins.git'
+      }
+    }
 
-                        }
-                    }   
-                }
-            }
-        }
-    stage('plan') {
-        steps {
-            sh 'pwd;cd Terraform/ ; terraform init'
-            sh "pwd;cd Terraform/ ; terraform plan -out tfplan"
-            sh 'pwd;cd Terraform/ ; terraform show -no-color tfplan >tfplan.txt'
-        }
+    stage('Terraform Init') {
+      steps {
+        sh 'terraform init'
+      }
     }
-    stage('Approval') {
-        when {
-            not {
-                equals expected: true, actual: params.autoAppropve
-            }
-        }
-    
-        steps {
-            script {
-                def plan = readfile 'Terraform/tfplan.txt'
-                input message: "do you want to apply the plan?",
-                parameters: [text(name: 'plan', description: 'please review the plan', defaultValue: plan)]
-            }
-        }
+
+    stage('Terraform Plan') {
+      steps {
+        sh 'terraform plan -out=tfplan'
+      }
     }
-    stage('Apply') {
-        steps {
-            sh "pwd;cd Terraform/ ; terraform apply -input=false tfplan"
-        }
+
+    stage('Terraform Apply') {
+      steps {
+        sh 'terraform apply -input=false tfplan'
+      }
     }
+  }
 }
