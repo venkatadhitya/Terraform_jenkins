@@ -9,7 +9,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git 'https://github.com/your-repo/terraform-aws-project.git'
+        git 'https://github.com/venkatadhitya/Terraform_jenkins.git'
       }
     }
 
